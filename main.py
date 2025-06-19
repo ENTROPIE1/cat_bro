@@ -28,6 +28,11 @@ async def run():
         help="OpenAI API key",
     )
     parser.add_argument(
+        "--system",
+        default="",
+        help="system prompt",
+    )
+    parser.add_argument(
         "--save-token",
         action="store_true",
         help="save provided token to .env",
@@ -46,7 +51,11 @@ async def run():
     )
 
     try:
-        client = ChatClient(api_key=args.token, debug=args.debug)
+        client = ChatClient(
+            api_key=args.token,
+            debug=args.debug,
+            system_prompt=args.system,
+        )
     except RuntimeError as e:
         print(e)
         return
