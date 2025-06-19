@@ -1,9 +1,11 @@
 import argparse
 import asyncio
 import logging
+import os
 
 import config
-from dotenv import load_dotenv
+from dotenv import load_dotenv, set_key
+from pathlib import Path
 from chat_client import ChatClient
 from player import play_stream
 
@@ -21,7 +23,22 @@ async def run():
         default=config.DEFAULT_VOICE,
         help="\u0433\u043e\u043b\u043e\u0441 TTS",
     )
+    parser.add_argument(
+        "--token",
+        help="OpenAI API key",
+    )
+    parser.add_argument(
+        "--save-token",
+        action="store_true",
+        help="save provided token to .env",
+    )
     args = parser.parse_args()
+
+    if args.token:
+        os.environ["OPENAI_API_KEY"] = args.token
+        if args.save_token:
+            env_path = Path(".env")
+            set_key(env_path, "OPENAI_API_KEY", args.token)
 
     logging.basicConfig(
         level=logging.DEBUG if args.debug else logging.INFO,
@@ -29,7 +46,7 @@ async def run():
     )
 
     try:
-        client = ChatClient(debug=args.debug)
+        client = ChatClient(api_key=args.token, debug=args.debug)
     except RuntimeError as e:
         print(e)
         return
