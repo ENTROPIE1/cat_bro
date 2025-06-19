@@ -117,8 +117,16 @@ class VTubeClient:
         self._level = min(max(self._level, 0.0), 1.0)
         try:
             payload = {
-                "apiName": "VTubeStudioParameterUpdate",
-                "parameters": [{"name": self.param, "value": self._level}],
+                "apiName": "VTubeStudioPublicAPI",
+                "apiVersion": "1.0",
+                "requestID": str(uuid.uuid4()),
+                "messageType": "InjectParameterDataRequest",
+                "data": {
+                    "mode": "set",
+                    "parameterValues": [
+                        {"id": self.param, "value": self._level, "weight": 1.0}
+                    ],
+                },
             }
             await self._ws.send(json.dumps(payload))
             logging.debug("WS send: %s", payload)

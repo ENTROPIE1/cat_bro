@@ -24,3 +24,11 @@ pip install -r requirements.txt
 # или передать ключ параметром `--token`. Опция `--save-token` сохраняет его в `.env`
 OPENAI_API_KEY=... python main.py [--token KEY] [--save-token] [--voice alloy] [--system "text"] [--debug]
 ```
+
+### Lip sync c VTube Studio
+
+Запустите программу с флагом `--vtube` (или `-v`), чтобы
+синхронизировать параметр `MouthOpen` модели VTube Studio с громкостью
+озвучки. Приложение подключится к VTube Studio по адресу
+`ws://127.0.0.1:8001`. Не забудьте включить доступ к WebSocket API в
+настройках VTube Studio.
