@@ -72,6 +72,7 @@ async def run():
         vtube = VTubeClient()
         try:
             await vtube.connect()
+            await vtube.check_connection()
         except ConnectionRefusedError:
             logging.warning(
                 "VTube Studio not running, lip sync disabled"
