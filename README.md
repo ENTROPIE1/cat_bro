@@ -5,8 +5,18 @@
 ## Требования
 - Python 3.10+
 - openai 1.x
+- httpx < 0.28
 - ffplay (из пакета ffmpeg)
 - python-dotenv
+
+Все зависимости можно установить командой:
+
+```bash
+pip install -r requirements.txt
+```
+
+Если при запуске появляется ошибка вида `AsyncClient.__init__() got an unexpected`
+` keyword argument 'proxies'`, убедитесь, что используется версия `httpx` ниже `0.28`.
 
 ## Запуск
 ```bash
