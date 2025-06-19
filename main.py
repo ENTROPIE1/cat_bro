@@ -29,7 +29,7 @@ async def run():
     )
     parser.add_argument(
         "--system",
-        default="",
+        default=config.SYSTEM_PROMPT,
         help="system prompt",
     )
     parser.add_argument(
