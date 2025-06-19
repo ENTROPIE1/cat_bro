@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import time
 from typing import AsyncIterator
 
@@ -9,8 +10,12 @@ import config
 
 
 class ChatClient:
-    def __init__(self, api_key: str, debug: bool = False):
+    def __init__(self, api_key: str | None = None, debug: bool = False):
         self.debug = debug
+        if api_key is None:
+            api_key = os.environ.get("OPENAI_API_KEY")
+        if not api_key:
+            raise RuntimeError("OPENAI_API_KEY environment variable is not set")
         self.client = openai.AsyncOpenAI(
             api_key=api_key,
             base_url=config.BASE_URL,

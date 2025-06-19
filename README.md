@@ -9,5 +9,6 @@
 
 ## Запуск
 ```bash
+# переменная окружения OPENAI_API_KEY должна содержать ваш токен
 OPENAI_API_KEY=... python main.py [--voice alloy] [--debug]
 ```
