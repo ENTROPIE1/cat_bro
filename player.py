@@ -35,9 +35,12 @@ async def play_stream(chunks):
         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
             async for chunk in chunks:
                 tmp.write(chunk)
+            tmp.flush()
             tmp_path = tmp.name
         try:
-            playsound(tmp_path)
+            await asyncio.to_thread(playsound, tmp_path)
+        except Exception as e:  # pragma: no cover - platform specific
+            logging.error("playsound failed: %s", e)
         finally:
             os.unlink(tmp_path)
         return
