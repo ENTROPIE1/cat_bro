@@ -3,11 +3,13 @@ import asyncio
 import logging
 
 import config
+from dotenv import load_dotenv
 from chat_client import ChatClient
 from player import play_stream
 
 
 async def run():
+    load_dotenv()
     parser = argparse.ArgumentParser(description="GPT-TTS CLI")
     parser.add_argument(
         "--debug",
