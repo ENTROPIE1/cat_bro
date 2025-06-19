@@ -1,3 +1,5 @@
 httpx>=0.28
 python-dotenv
 playsound==1.2.2
+numpy
+websockets>=11
