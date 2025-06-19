@@ -41,8 +41,9 @@ async def run():
     parser.add_argument(
         "-v",
         "--vtube",
-        action="store_true",
-        help="enable VTube Studio lip sync",
+        action=argparse.BooleanOptionalAction,
+        default=config.ENABLE_VTUBE,
+        help="enable or disable VTube Studio lip sync",
     )
     args = parser.parse_args()
 

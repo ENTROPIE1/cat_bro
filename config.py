@@ -9,3 +9,6 @@ MAX_RETRIES = 3
 RETRY_BACKOFF = 2
 # Default system prompt used to initialize conversation history
 SYSTEM_PROMPT = ""
+
+# Enable VTube Studio lip sync by default. Can be overridden with --vtube/--no-vtube
+ENABLE_VTUBE = False
