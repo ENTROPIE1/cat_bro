@@ -3,6 +3,11 @@ import logging
 import os
 import shutil
 import tempfile
+from typing import AsyncIterator, Optional
+
+import numpy as np
+
+from vtube import VTubeClient
 
 try:
     from playsound import playsound
@@ -10,19 +15,45 @@ except Exception:  # pragma: no cover - optional dependency
     playsound = None
 
 
-async def play_stream(chunks):
-    """Play audio chunks using ffplay if available or playsound as fallback."""
+def _rms_level(data: bytes) -> float:
+    arr = np.frombuffer(data, dtype=np.int16).astype(np.float32)
+    if arr.size == 0:
+        return 0.0
+    rms = np.sqrt(np.mean(arr ** 2))
+    return float(min(max(rms / 32768.0, 0.0), 1.0))
+
+
+async def play_stream(
+    chunks: AsyncIterator[bytes],
+    *,
+    pcm: bool = False,
+    vtube: Optional[VTubeClient] = None,
+) -> None:
+    """Play audio chunks using ffplay if available or playsound as fallback.
+
+    Args:
+        chunks: Stream of audio bytes.
+        pcm: ``True`` if ``chunks`` provide raw PCM s16le 24 kHz mono.
+        vtube: Optional ``VTubeClient`` for lip sync updates.
+    """
     if shutil.which("ffplay"):
-        proc = await asyncio.create_subprocess_exec(
+        cmd = [
             "ffplay",
             "-autoexit",
             "-nodisp",
             "-loglevel",
             "quiet",
-            "-",
-            stdin=asyncio.subprocess.PIPE,
+        ]
+        if pcm:
+            cmd += ["-f", "s16le", "-ar", "24000", "-ac", "1"]
+        cmd.append("-")
+        proc = await asyncio.create_subprocess_exec(
+            *cmd, stdin=asyncio.subprocess.PIPE
         )
         async for chunk in chunks:
+            if vtube and pcm:
+                level = _rms_level(chunk)
+                asyncio.create_task(vtube.send_level(level))
             if proc.stdin is not None:
                 proc.stdin.write(chunk)
                 await proc.stdin.drain()
@@ -31,7 +62,7 @@ async def play_stream(chunks):
         await proc.wait()
         return
 
-    if playsound:
+    if playsound and not pcm:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
             async for chunk in chunks:
                 tmp.write(chunk)

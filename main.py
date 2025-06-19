@@ -8,6 +8,7 @@ from dotenv import load_dotenv, set_key
 from pathlib import Path
 from chat_client import ChatClient
 from player import play_stream
+from vtube import VTubeClient
 
 
 async def run():
@@ -37,6 +38,12 @@ async def run():
         action="store_true",
         help="save provided token to .env",
     )
+    parser.add_argument(
+        "-v",
+        "--vtube",
+        action="store_true",
+        help="enable VTube Studio lip sync",
+    )
     args = parser.parse_args()
 
     if args.token:
@@ -60,6 +67,17 @@ async def run():
         print(e)
         return
 
+    vtube: VTubeClient | None = None
+    if args.vtube:
+        vtube = VTubeClient()
+        try:
+            await vtube.connect()
+        except ConnectionRefusedError:
+            logging.warning(
+                "VTube Studio not running, lip sync disabled"
+            )
+            vtube = None
+
     print(
         "GPT-TTS CLI. \u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0437\u0430\u043f\u0440\u043e\u0441. \u0414\u043b\u044f \u0432\u044b\u0445\u043e\u0434\u0430: /exit, q"
     )
@@ -75,12 +93,15 @@ async def run():
         try:
             reply = await client.ask(text)
             print(reply)
-            chunks = await client.tts(reply, voice=args.voice)
-            await play_stream(chunks)
+            fmt = "pcm" if vtube else "mp3"
+            chunks = await client.tts(reply, voice=args.voice, fmt=fmt)
+            await play_stream(chunks, pcm=bool(vtube), vtube=vtube)
         except Exception as e:
             logging.error("%s", e)
     print("\u0414\u043e \u0441\u0432\u0438\u0434\u0430\u043d\u0438\u044f!")
     await client.close()
+    if vtube:
+        await vtube.close()
 
 
 if __name__ == "__main__":
