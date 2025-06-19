@@ -1,0 +1,62 @@
+import argparse
+import asyncio
+import logging
+import os
+
+import config
+from chat_client import ChatClient
+from player import play_stream
+
+
+async def run():
+    parser = argparse.ArgumentParser(description="GPT-TTS CLI")
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="\u0440\u0435\u0436\u0438\u043c \u043e\u0442\u043b\u0430\u0434\u043a\u0438",
+    )
+    parser.add_argument(
+        "--voice",
+        default=config.DEFAULT_VOICE,
+        help="\u0433\u043e\u043b\u043e\u0441 TTS",
+    )
+    args = parser.parse_args()
+
+    logging.basicConfig(
+        level=logging.DEBUG if args.debug else logging.INFO,
+        format="[%(asctime)s] %(levelname)s: %(message)s",
+    )
+
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        print(
+            "\u041d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d API \u043a\u043b\u044e\u0447 (OPENAI_API_KEY)"
+        )
+        return
+
+    client = ChatClient(api_key=api_key, debug=args.debug)
+
+    print(
+        "GPT-TTS CLI. \u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0437\u0430\u043f\u0440\u043e\u0441. \u0414\u043b\u044f \u0432\u044b\u0445\u043e\u0434\u0430: /exit, q"
+    )
+    while True:
+        try:
+            text = input("\u003e ").strip()
+        except (EOFError, KeyboardInterrupt):
+            break
+        if text.lower() in {"/exit", "q", "quit"}:
+            break
+        if not text:
+            continue
+        try:
+            reply = await client.ask(text)
+            print(reply)
+            chunks = await client.tts(reply, voice=args.voice)
+            await play_stream(chunks)
+        except Exception as e:
+            logging.error("%s", e)
+    print("\u0414\u043e \u0441\u0432\u0438\u0434\u0430\u043d\u0438\u044f!")
+
+
+if __name__ == "__main__":
+    asyncio.run(run())
