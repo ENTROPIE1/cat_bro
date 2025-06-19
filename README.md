@@ -22,8 +22,11 @@ pip install -r requirements.txt
 # переменная окружения OPENAI_API_KEY должна содержать ваш токен
 # можно создать файл `.env` с записью `OPENAI_API_KEY=...`
 # или передать ключ параметром `--token`. Опция `--save-token` сохраняет его в `.env`
-OPENAI_API_KEY=... python main.py [--token KEY] [--save-token] [--voice alloy] [--system "text"] [--debug]
+OPENAI_API_KEY=... python main.py [--token KEY] [--save-token] [--voice alloy] [--system "text"] [--debug] [--vtube/--no-vtube]
 ```
+
+Опцию использования VTube Studio можно заранее указать в `config.py`,
+изменив значение `ENABLE_VTUBE` на `True` или `False`.
 
 ### Lip sync c VTube Studio
 
