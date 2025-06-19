@@ -14,7 +14,7 @@ class ChatClient:
         self,
         api_key: str | None = None,
         debug: bool = False,
-        system_prompt: str | None = None,
+        system_prompt: str | None = config.SYSTEM_PROMPT,
         history_limit: int = 40,
     ):
         self.debug = debug
