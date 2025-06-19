@@ -54,13 +54,14 @@ class VTubeClient:
         self._ws = await websockets.connect(self.url)
         logging.debug("VTube WS connected to %s", self.url)
 
-        req_id = lambda: str(uuid.uuid4())
+        def _req_id() -> str:
+            return str(uuid.uuid4())
 
         # 1. request authentication token
         token_request = {
             "apiName": "VTubeStudioPublicAPI",
             "apiVersion": "1.0",
-            "requestID": req_id(),
+            "requestID": _req_id(),
             "messageType": "AuthenticationTokenRequest",
             "data": {
                 "pluginName": self.plugin_name,
@@ -84,7 +85,7 @@ class VTubeClient:
         auth_request = {
             "apiName": "VTubeStudioPublicAPI",
             "apiVersion": "1.0",
-            "requestID": req_id(),
+            "requestID": _req_id(),
             "messageType": "AuthenticationRequest",
             "data": {
                 "pluginName": self.plugin_name,
@@ -104,6 +105,16 @@ class VTubeClient:
             logging.warning("VTube WS authentication failed")
             await self._ws.close()
             self._ws = None
+            return
+
+        logging.info("VTube handshake: %s", auth_resp)
+        for v in (1.0, 0.0):
+            test_payload = {
+                "apiName": "VTubeStudioParameterUpdate",
+                "parameters": [{"name": self.param, "value": v}],
+            }
+            await self._ws.send(json.dumps(test_payload))
+            await asyncio.sleep(0.5)
 
     async def send_level(self, level: float) -> None:
         """Send normalized level to VTube Studio.
