@@ -10,8 +10,18 @@ import config
 
 
 class ChatClient:
-    def __init__(self, api_key: str | None = None, debug: bool = False):
+    def __init__(
+        self,
+        api_key: str | None = None,
+        debug: bool = False,
+        system_prompt: str | None = None,
+        history_limit: int = 40,
+    ):
         self.debug = debug
+        self.history_limit = history_limit
+        self.messages: list[dict[str, str]] = []
+        if system_prompt:
+            self.messages.append({"role": "system", "content": system_prompt})
         if api_key is None:
             api_key = os.environ.get("OPENAI_API_KEY")
         if not api_key:
@@ -58,9 +68,10 @@ class ChatClient:
         raise RuntimeError("Failed after retries")
 
     async def ask(self, text: str) -> str:
+        self.messages.append({"role": "user", "content": text})
         payload = {
             "model": config.TEXT_MODEL,
-            "messages": [{"role": "user", "content": text}],
+            "messages": self.messages[-self.history_limit :],
         }
         if self.debug:
             logging.debug("Chat payload: %s", payload)
@@ -75,7 +86,11 @@ class ChatClient:
                 usage.get("prompt_tokens"),
                 usage.get("completion_tokens"),
             )
-        return data["choices"][0]["message"]["content"].strip()
+        reply = data["choices"][0]["message"]["content"].strip()
+        self.messages.append({"role": "assistant", "content": reply})
+        if len(self.messages) > self.history_limit:
+            self.messages = self.messages[-self.history_limit :]
+        return reply
 
     async def tts(
         self, text: str, voice: str = config.DEFAULT_VOICE, fmt: str = "mp3"
