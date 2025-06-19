@@ -53,7 +53,7 @@ class ChatClient:
                     continue
                 if status == 429:
                     logging.warning(
-                        "\u041f\u0440\u0435\u0432\u044b\u0448\u0435\u043d \u043b\u0438\u043c\u0438\u0442 \u0437\u0430\u043f\u0440\u043e\u0441\u043e\u0432, \u0436\u0434\u0451\u043c 20 \u0441"
+                        "Превышен лимит запросов, ждём 20 с"
                     )
                     await asyncio.sleep(20)
                     continue

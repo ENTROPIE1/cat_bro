@@ -80,7 +80,7 @@ async def run():
             vtube = None
 
     print(
-        "GPT-TTS CLI. \u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0437\u0430\u043f\u0440\u043e\u0441. \u0414\u043b\u044f \u0432\u044b\u0445\u043e\u0434\u0430: /exit, q"
+        "GPT-TTS CLI. Введите запрос. Для выхода: /exit, q"
     )
     while True:
         try:
