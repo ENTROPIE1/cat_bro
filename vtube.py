@@ -4,12 +4,21 @@ import logging
 from typing import Optional
 
 import websockets
+import uuid
 
 
 class VTubeClient:
     """WebSocket client for controlling VTube Studio parameters."""
 
-    def __init__(self, url: str = "ws://127.0.0.1:8001", param: str = "MouthOpen", smoothing: float = 0.3) -> None:
+    def __init__(
+        self,
+        url: str = "ws://127.0.0.1:8001",
+        param: str = "MouthOpen",
+        smoothing: float = 0.3,
+        *,
+        plugin_name: str = "GPT-TTS",
+        plugin_developer: str = "You",
+    ) -> None:
         """Initialize client.
 
         Args:
@@ -20,6 +29,8 @@ class VTubeClient:
         self.url = url
         self.param = param
         self.smoothing = smoothing
+        self.plugin_name = plugin_name
+        self.plugin_developer = plugin_developer
         self._ws: Optional[websockets.WebSocketClientProtocol] = None
         self._level: float = 0.0
         self._last_log: float = 0.0
@@ -39,23 +50,60 @@ class VTubeClient:
             return False
 
     async def connect(self) -> None:
-        """Establish WebSocket connection and perform handshake."""
+        """Establish WebSocket connection and authenticate."""
         self._ws = await websockets.connect(self.url)
         logging.debug("VTube WS connected to %s", self.url)
-        # Send simple state request to verify connection
-        payload = {
-            "apiName": "VTubeStudioAPIStateRequest",
-            "apiVersion": 1,
-            "requestID": "state",
+
+        req_id = lambda: str(uuid.uuid4())
+
+        # 1. request authentication token
+        token_request = {
+            "apiName": "VTubeStudioPublicAPI",
+            "apiVersion": "1.0",
+            "requestID": req_id(),
+            "messageType": "AuthenticationTokenRequest",
+            "data": {
+                "pluginName": self.plugin_name,
+                "pluginDeveloper": self.plugin_developer,
+            },
         }
-        await self._ws.send(json.dumps(payload))
-        logging.debug("WS send: %s", payload)
+        await self._ws.send(json.dumps(token_request))
+        logging.debug("WS send: %s", token_request)
         try:
-            resp = await asyncio.wait_for(self._ws.recv(), timeout=2)
+            token_resp = json.loads(await asyncio.wait_for(self._ws.recv(), timeout=2))
         except Exception:
-            logging.warning("VTube WS handshake timed out")
+            logging.warning("VTube WS token request timed out")
             return
-        logging.debug("WS recv: %s", resp)
+        logging.debug("WS recv: %s", token_resp)
+        token = token_resp.get("data", {}).get("authenticationToken")
+        if not token:
+            logging.warning("VTube WS token missing in response")
+            return
+
+        # 2. confirm the token
+        auth_request = {
+            "apiName": "VTubeStudioPublicAPI",
+            "apiVersion": "1.0",
+            "requestID": req_id(),
+            "messageType": "AuthenticationRequest",
+            "data": {
+                "pluginName": self.plugin_name,
+                "pluginDeveloper": self.plugin_developer,
+                "authenticationToken": token,
+            },
+        }
+        await self._ws.send(json.dumps(auth_request))
+        logging.debug("WS send: %s", auth_request)
+        try:
+            auth_resp = json.loads(await asyncio.wait_for(self._ws.recv(), timeout=2))
+        except Exception:
+            logging.warning("VTube WS authentication timed out")
+            return
+        logging.debug("WS recv: %s", auth_resp)
+        if not auth_resp.get("data", {}).get("authenticated"):
+            logging.warning("VTube WS authentication failed")
+            await self._ws.close()
+            self._ws = None
 
     async def send_level(self, level: float) -> None:
         """Send normalized level to VTube Studio.
