@@ -95,9 +95,8 @@ async def run():
         try:
             reply = await client.ask(text)
             print(reply)
-            fmt = "pcm" if vtube else "mp3"
-            chunks = await client.tts(reply, voice=args.voice, fmt=fmt)
-            await play_stream(chunks, pcm=bool(vtube), vtube=vtube)
+            chunks = await client.tts(reply, voice=args.voice)
+            play_stream(chunks)
         except Exception as e:
             logging.error("%s", e)
     print("\u0414\u043e \u0441\u0432\u0438\u0434\u0430\u043d\u0438\u044f!")
