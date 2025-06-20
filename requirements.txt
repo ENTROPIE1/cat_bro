@@ -1,5 +1,5 @@
-httpx>=0.28
-python-dotenv
+httpx==0.28.1
+python-dotenv==1.1.0
 playsound==1.2.2
-numpy
-websockets>=11
+numpy==2.3.0
+websockets==15.0.1
