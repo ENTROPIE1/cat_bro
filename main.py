@@ -95,8 +95,9 @@ async def run():
         try:
             reply = await client.ask(text)
             print(reply)
-            fmt = "pcm" if vtube else "mp3"
-            chunks = await client.tts(reply, voice=args.voice, fmt=fmt)
+            # always request MP3 since play_stream expects MP3 data
+            # using PCM here resulted in corrupted playback
+            chunks = await client.tts(reply, voice=args.voice, fmt="mp3")
             await play_stream(chunks)
         except Exception as e:
             logging.error("%s", e)
