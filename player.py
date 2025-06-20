@@ -13,14 +13,20 @@ except Exception:  # pragma: no cover - optional dependency
 
 FFPLAY_PATH = os.path.join("ffmpeg", "bin", "ffplay.exe")
 
+# Output device name for routing audio through VB-CABLE
+AUDIO_OUT = "CABLE Input"
+
 
 def _play_file_ffplay(path: str) -> bool:
     """Play file using ffplay if available. Return True if successful."""
     if not os.path.exists(FFPLAY_PATH):
         return False
     try:
+        logging.info("Аудио выводится в устройство: %s", AUDIO_OUT)
         subprocess.run(
-            [FFPLAY_PATH, "-nodisp", "-autoexit", path],
+            [FFPLAY_PATH, "-nodisp", "-autoexit",
+             "-audio_device", AUDIO_OUT,
+             path],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             check=True,
