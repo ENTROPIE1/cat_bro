@@ -7,6 +7,7 @@
 - httpx >= 0.28
 - ffplay (из пакета ffmpeg) или модуль `playsound`
 - python-dotenv
+- VB-CABLE установлен, VTS Lip-Sync микрофон = CABLE Output
 
 Все зависимости можно установить командой:
 
@@ -43,5 +44,9 @@ OPENAI_API_KEY=... python main.py [--token KEY] [--save-token] [--voice alloy] [
 ```bash
 python vts_ping.py
 ```
+
+### Как слушать звук самому
+
+Для мониторинга аудио используйте VoiceMeeter или плагин OBS Audio Monitor.
 
 
