@@ -7,7 +7,7 @@ import config
 from dotenv import load_dotenv, set_key
 from pathlib import Path
 from chat_client import ChatClient
-from player import play_file
+from player import play_file, set_audio_output
 from vtube import VTubeClient
 from vtube_stream import VTubeStreamer
 import io
@@ -53,6 +53,11 @@ async def run():
         action="store_true",
         help="send RMS levels to VTube Studio during playback",
     )
+    parser.add_argument(
+        "--audio-device",
+        default="CABLE Input",
+        help="output device for ffplay (Windows only)",
+    )
     args = parser.parse_args()
 
     if args.token:
@@ -65,6 +70,7 @@ async def run():
         level=logging.DEBUG if args.debug else logging.INFO,
         format="[%(asctime)s] %(levelname)s: %(message)s",
     )
+    set_audio_output(args.audio_device)
 
     try:
         client = ChatClient(
