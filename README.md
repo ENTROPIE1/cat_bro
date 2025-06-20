@@ -35,3 +35,11 @@ OPENAI_API_KEY=... python main.py [--token KEY] [--save-token] [--voice alloy] [
 озвучки. Приложение подключится к VTube Studio по адресу
 `ws://127.0.0.1:8001`. Не забудьте включить доступ к WebSocket API в
 настройках VTube Studio.
+
+### Проверка связи с VTube Studio
+
+Скрипт `vts_ping.py` отправляет тестовые значения параметра `MouthOpen`, чтобы убедиться в работе подключения. Его можно запустить отдельно:
+```bash
+python vts_ping.py
+```
+
