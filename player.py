@@ -3,11 +3,7 @@ import subprocess
 import tempfile
 import os
 import logging
-from typing import AsyncIterator, Optional
-
-import numpy as np
-
-from vtube import VTubeClient
+from typing import AsyncIterator
 
 try:
     from playsound import playsound
@@ -58,28 +54,18 @@ def play_file(path: str) -> None:
     logging.error("Не удалось воспроизвести звук: ffplay и playsound недоступны")
 
 
-def _rms_level(data: bytes) -> float:
-    arr = np.frombuffer(data, dtype=np.int16).astype(np.float32)
-    if arr.size == 0:
-        return 0.0
-    rms = np.sqrt(np.mean(arr ** 2))
-    return float(min(max(rms / 32768.0, 0.0), 1.0))
+async def play_stream(stream_iter: AsyncIterator[bytes]) -> None:
+    """Play an audio stream.
 
+    The iterator must yield raw bytes of an MP3 file. The data is saved to a
+    temporary ``.mp3`` file which is then played using ``ffplay`` located at
+    :data:`FFPLAY_PATH`. After playback the file is removed.
+    """
 
-async def play_stream(
-    chunks: AsyncIterator[bytes],
-    *,
-    pcm: bool = False,
-    vtube: Optional[VTubeClient] = None,
-) -> None:
-    """Save audio stream to a temp file and play it."""
     tmp_path = ""
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
-            async for chunk in chunks:
-                if vtube and pcm:
-                    level = _rms_level(chunk)
-                    asyncio.create_task(vtube.send_level(level))
+            async for chunk in stream_iter:
                 tmp.write(chunk)
             tmp_path = tmp.name
         play_file(tmp_path)
