@@ -13,8 +13,15 @@ except Exception:  # pragma: no cover - optional dependency
 
 FFPLAY_PATH = os.path.join("ffmpeg", "bin", "ffplay.exe")
 
-# Output device name for routing audio through VB-CABLE
+# Output device name for routing audio through VB-CABLE.
+# Can be changed at runtime via :func:`set_audio_output`.
 AUDIO_OUT = "CABLE Input"
+
+
+def set_audio_output(device: str) -> None:
+    """Override the audio output device used by ffplay."""
+    global AUDIO_OUT
+    AUDIO_OUT = device
 
 
 def _play_file_ffplay(path: str) -> bool:
